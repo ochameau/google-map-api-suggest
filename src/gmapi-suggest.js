@@ -98,6 +98,10 @@ locationSuggest._updatePosition = function(input) {
   locationSuggest._list.style.left = pos[0]+"px";
   locationSuggest._list.style.top = (pos[1]+input.offsetHeight)+"px";
   locationSuggest._list.style.display = "block";
+  // Offer a way to style the flying popup relative to the input
+  if (input.id) {
+    locationSuggest._list.className = "under_"+input.id;
+  }
   locationSuggest._list.style.width = input.offsetWidth+"px";
 }
 
