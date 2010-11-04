@@ -1,0 +1,14 @@
+
+Javascript library used to provide location names suggest on html <input>, 
+under LGPL Licence.
+
+Simply add "location-suggest" classname to your <input>:
+  
+  <input id="my-input" type="text" class="location-suggest" />
+
+You may register them dynamically too, with this javascript code:
+
+  locationSuggest.registerInput(document.getElementById('my-input'));
+
+
+
