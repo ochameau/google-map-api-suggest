@@ -75,11 +75,13 @@ locationSuggest._updateInput = function (input, googleGeocodeItem, suggest) {
   }
   
   var callback = input.getAttribute("onlocationchange");
-  var fun = eval("(function (event) {"+callback+";})");
+  var fun = eval("function f(event) {"+callback+";};f");
   fun.apply(null,[{input: input, googleGeocodeItem:googleGeocodeItem}]);
 }
 
 locationSuggest._clearList = function() {
+  locationSuggest._list.selectedNodeI = -1;
+  locationSuggest._savedInputValue = "";
   locationSuggest._list.innerHTML =  "";
 }
 
@@ -108,6 +110,7 @@ locationSuggest._updatePosition = function(input) {
 locationSuggest._createLine = function(input, item) {
   var line = document.createElement("li");
   line.innerHTML = item.formatted_address;
+  line.item = item;
   line.setAttribute("style","cursor: pointer; list-style: none; margin-left: 0; padding-left: 0;");
   line.onmousedown = function () {
     locationSuggest._updateInput(input,item,false);
@@ -115,7 +118,25 @@ locationSuggest._createLine = function(input, item) {
   return line;
 }
 
-
+locationSuggest.selectLine = function (input,direction) {
+  try {
+    var node = locationSuggest._list.childNodes[locationSuggest._list.selectedNodeI];
+    node.className="";
+    node.style.fontWeight="";
+  } catch(e) {}
+  if (locationSuggest._list.selectedNodeI==-1 && direction ==1)
+    locationSuggest._savedInputValue = input.value;
+  locationSuggest._list.selectedNodeI += direction;
+  locationSuggest._list.selectedNodeI = Math.min(Math.max(-1,locationSuggest._list.selectedNodeI),locationSuggest._list.childNodes.length-1);
+  if (locationSuggest._list.selectedNodeI==-1) {
+    input.value = locationSuggest._savedInputValue;
+    return;
+  }
+  var node = locationSuggest._list.childNodes[locationSuggest._list.selectedNodeI];
+  node.className = "selected";
+  node.style.fontWeight = "bold";
+  locationSuggest._updateInput(input,node.item,false);
+}
 
 locationSuggest.close = function() {
   locationSuggest._list.style.display = "none";
@@ -123,9 +144,15 @@ locationSuggest.close = function() {
 }
 
 locationSuggest.registerInput = function(input) {
-  input.onkeyup = function () {
-    if (input.enabled)
-    locationSuggest._update(input);
+  input.onkeyup = function (event) {
+    if (event.keyCode==40) // Arrow down
+      locationSuggest.selectLine(input,1);
+    else if (event.keyCode==38) // Arrow up
+      locationSuggest.selectLine(input,-1);
+    else if (event.keyCode==13) // Enter
+      ;
+    else if (input.enabled)
+      locationSuggest._update(input);
   }
   input.onfocus = function () {
     input.enabled=true;
@@ -139,16 +166,16 @@ locationSuggest.registerInput = function(input) {
 }
 
 
-window.addEventListener("load",function () {
+google.maps.event.addDomListenerOnce(window, "load",function () {
   locationSuggest._list = document.createElement("div");
   locationSuggest._list.id = "suggest_list";
   locationSuggest._list.setAttribute("style","margin: 0; padding: 0; position: absolute; min-width: 200px; right: 0; background:#f0f0f0; display:none;");
   document.body.appendChild(locationSuggest._list);
   
-  var inputs = document.getElementsByClassName("location-suggest");
+  var inputs = document.body.getElementsByTagName("input");
   for(var i=0; i<inputs.length; i++) {
     var input = inputs[i];
-    if (!input.tagName.match(/input/i)) continue;
+    if (!input.className.match(/location-suggest/i)) continue;
     locationSuggest.registerInput(input);
   }
-}, false);
+});

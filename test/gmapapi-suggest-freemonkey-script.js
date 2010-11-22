@@ -27,6 +27,8 @@ wait.forEquals(function () {return list.node.textContent;},"Paris, France");
 wait.forTrue(function () {return locationChangeBeingCalled;});
 container.screenshot();
 
+// TODO: test arrows up/down
+
 wait.during(1000);
 // Blur the input in order to hide the suggest list popup
 input.node.blur();
